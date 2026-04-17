@@ -37,6 +37,8 @@ class Config:
         # X and Y do not exceed the smallest area
 
         # ENTRY or EXIT is outside of the maze
+
+        # ENTRY or EXIT is inside the protected area
         pass
 
     def _check_valid_names() -> bool:
