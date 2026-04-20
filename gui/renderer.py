@@ -84,7 +84,6 @@ class Renderer:
 
     def render(self, maze: Maze, path: List) -> None:
         path_position = list(map(lambda cell: (cell.x, cell.y), path))
-        print(path_position)
         for i in range(maze.height):
             for j in range(maze.width):
                 image = Image(self.mlx, self.mlx_ptr, image_length, image_length)
