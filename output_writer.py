@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 from maze import Maze
 # walls={"N": True, "E": True, "S": True, "W": True}
 
@@ -8,9 +8,10 @@ import maze as maze_module
 
 
 class OutputWriter:
-    def __init__(self, filename: str, maze: Maze):
+    def __init__(self, filename: str, maze: Maze, directions: List):
         self.filename = filename
         self.maze = maze
+        self.directions = directions
 
     def _convert_to_number(self, walls: Dict[str, bool]) -> None:
         """
@@ -42,7 +43,7 @@ class OutputWriter:
         pass
 
     def _write_path(self) -> None:
-        pass
+        return "".join(self.directions)
 
     def write_output(self) -> None:
         try:
@@ -56,9 +57,14 @@ class OutputWriter:
 
 
 if __name__ == "__main__":
-    my_maze = Maze(5, 5)
+    my_maze = Maze(10, 10)
     generator = maze_module.HuntAndKillGenerator(42)
     generator.generate(my_maze)
     maze_module.render_maze(my_maze)
-    writer = OutputWriter("output.txt", my_maze)
+    directions = ['S', 'S', 'E', 'E', 'E', 'E', 'N', 'E', 'E', 'E',
+                  'E', 'N', 'E', 'S', 'S', 'S', 'S', 'S', 'W', 'W',
+                  'S', 'E', 'E', 'S', 'S', 'W', 'W', 'W', 'S', 'E',
+                  'E', 'E']
+    writer = OutputWriter("output.txt", my_maze, directions)
     print(writer._write_maze())
+    print(writer._write_path())
