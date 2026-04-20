@@ -1,0 +1,4 @@
+/.venv
+/mlx_CLXV
+output_validator.py
+*.pyc
