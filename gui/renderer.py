@@ -16,10 +16,25 @@ yellow = 0xFFFFFF00
 
 
 class Renderer:
-    def __init__(self):
+    def __init__(self, maze: Maze):
+        self.maze = maze
         self.mlx = Mlx()
         self.mlx_ptr = self.mlx.mlx_init()
-        self.window = self.mlx.mlx_new_window(self.mlx_ptr, 1200, 800, "test")
+
+        self.window_width = 1200
+        self.window_height = 900
+        self.window = self.mlx.mlx_new_window(self.mlx_ptr, self.window_width, self.window_height, "test")
+
+        self.num_cells_x_side = maze.width
+        self.num_cells_y_side = maze.height
+        self.min_padding = 30
+        self.image_length = max(4,
+                                min((self.window_width - 2 * self.min_padding) // self.num_cells_x_side,
+                                    (self.window_height - 2 * self.min_padding) // self.num_cells_y_side))
+        self.cell_length = self.image_length
+        self.stroke_length = max(1, self.cell_length // 10)
+        self.padding_x_side = (self.window_width - self.num_cells_x_side * self.cell_length) // 2
+        self.padding_y_side = (self.window_height - self.num_cells_y_side * self.cell_length) // 2
 
     def _cell_position(self, n: int) -> float:
         if n == 0:
