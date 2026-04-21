@@ -32,7 +32,7 @@ def main() -> None:
         writer = OutputWriter(config, maze, directions)
         writer.write_output()
 
-        renderer = Renderer()
+        renderer = Renderer(maze)
         renderer.render(maze, path)
 
     except ParseError as e:

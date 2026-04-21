@@ -3,11 +3,6 @@ from mlx import Mlx
 from gui.image import Image
 from maze import Maze
 
-
-image_length = 300
-cell_length = 50
-stroke_length = 6
-
 # format: 0xAARRGGBB
 white = 0xFFFFFFFF
 green = 0xFF00FF00
@@ -24,84 +19,95 @@ class Renderer:
         self.window_width = 1200
         self.window_height = 900
         self.window = self.mlx.mlx_new_window(self.mlx_ptr, self.window_width, self.window_height, "test")
+        self.info_width = 300
 
-        self.num_cells_x_side = maze.width
-        self.num_cells_y_side = maze.height
         self.min_padding = 30
-        self.image_length = max(4,
-                                min((self.window_width - 2 * self.min_padding) // self.num_cells_x_side,
-                                    (self.window_height - 2 * self.min_padding) // self.num_cells_y_side))
+
+        maze_area_width = self.window_width - self.info_width
+        maze_area_height = self.window_height
+
+        available_width = maze_area_width - 2 * self.min_padding
+        available_height = maze_area_height - 2 * self.min_padding
+
+        cell_size_x = available_width // self.maze.width
+        cell_size_y = available_height // self.maze.height
+
+        self.image_length = max(4, min(cell_size_x, cell_size_y))
         self.cell_length = self.image_length
         self.stroke_length = max(1, self.cell_length // 10)
-        self.padding_x_side = (self.window_width - self.num_cells_x_side * self.cell_length) // 2
-        self.padding_y_side = (self.window_height - self.num_cells_y_side * self.cell_length) // 2
+
+        maze_pixel_width = self.maze.width * self.cell_length
+        maze_pixel_height = self.maze.height * self.cell_length
+
+        self.padding_x_side = (maze_area_width - maze_pixel_width) // 2
+        self.padding_y_side = (self.window_height - maze_pixel_height) // 2
 
     def _cell_position(self, n: int) -> float:
         if n == 0:
             return 0
-        return n * (cell_length - stroke_length)
+        return n * (self.cell_length - self.stroke_length)
 
     def _draw_interior_of_cell(self, image: Image, colour: str) -> None:
-        image.draw_shape(colour, stroke_length, stroke_length, cell_length - 2 * stroke_length, cell_length - 2 * stroke_length)
+        image.draw_shape(colour, self.stroke_length, self.stroke_length, self.cell_length - 2 * self.stroke_length, self.cell_length - 2 * self.stroke_length)
 
     def _draw_side_of_cell(self, image: Image, colour: str, direction: str) -> None:
         # N
         if direction == "N":
-            start_x = stroke_length
+            start_x = self.stroke_length
             start_y = 0
-            image.draw_shape(colour, start_x, start_y, cell_length - 2 * stroke_length, stroke_length)
+            image.draw_shape(colour, start_x, start_y, self.cell_length - 2 * self.stroke_length, self.stroke_length)
 
         # NE
         if direction == "NE":
-            start_x = cell_length - stroke_length
+            start_x = self.cell_length - self.stroke_length
             start_y = 0
-            image.draw_shape(colour, start_x, start_y, stroke_length, stroke_length)
+            image.draw_shape(colour, start_x, start_y, self.stroke_length, self.stroke_length)
 
         # E
         if direction == "E":
-            start_x = cell_length - stroke_length
-            start_y = stroke_length
-            image.draw_shape(colour, start_x, start_y, stroke_length, cell_length - 2 * stroke_length)
+            start_x = self.cell_length - self.stroke_length
+            start_y = self.stroke_length
+            image.draw_shape(colour, start_x, start_y, self.stroke_length, self.cell_length - 2 * self.stroke_length)
 
         # SE
         if direction == "SE":
-            start_x = cell_length - stroke_length
-            start_y = cell_length - stroke_length
-            image.draw_shape(colour, start_x, start_y, stroke_length, stroke_length)
+            start_x = self.cell_length - self.stroke_length
+            start_y = self.cell_length - self.stroke_length
+            image.draw_shape(colour, start_x, start_y, self.stroke_length, self.stroke_length)
 
         # S
         if direction == "S":
-            start_x = stroke_length
-            start_y = cell_length - stroke_length
-            image.draw_shape(colour, start_x, start_y, cell_length - 2 * stroke_length, stroke_length)
+            start_x = self.stroke_length
+            start_y = self.cell_length - self.stroke_length
+            image.draw_shape(colour, start_x, start_y, self.cell_length - 2 * self.stroke_length, self.stroke_length)
 
         # SW
         if direction == "SW":
             start_x = 0
-            start_y = cell_length - stroke_length
-            image.draw_shape(colour, start_x, start_y, stroke_length, stroke_length)
+            start_y = self.cell_length - self.stroke_length
+            image.draw_shape(colour, start_x, start_y, self.stroke_length, self.stroke_length)
 
         # W
         if direction == "W":
             start_x = 0
-            start_y = stroke_length
-            image.draw_shape(colour, start_x, start_y, stroke_length, cell_length - 2 * stroke_length)
+            start_y = self.stroke_length
+            image.draw_shape(colour, start_x, start_y, self.stroke_length, self.cell_length - 2 * self.stroke_length)
 
         # NW
         if direction == "NW":
             start_x = 0
             start_y = 0
-            image.draw_shape(colour, start_x, start_y, stroke_length, stroke_length)
+            image.draw_shape(colour, start_x, start_y, self.stroke_length, self.stroke_length)
 
     def _close_window(self, *_):
         self.mlx.mlx_loop_exit(self.mlx_ptr)
         return 0
 
     def render(self, maze: Maze, path: List) -> None:
-        path_position = list(map(lambda cell: (cell.x, cell.y), path))
+        path_position = {(cell.x, cell.y) for cell in path}
         for i in range(maze.height):
             for j in range(maze.width):
-                image = Image(self.mlx, self.mlx_ptr, image_length, image_length)
+                image = Image(self.mlx, self.mlx_ptr, self.image_length, self.image_length)
                 # Wall
                 for direction in ["NE", "SE", "SW", "NW"]:
                     self._draw_side_of_cell(image, blue, direction)
@@ -117,7 +123,7 @@ class Renderer:
                     self._draw_interior_of_cell(image, yellow)
                 else:
                     self._draw_interior_of_cell(image, white)
-                image.put_to_window(self.window, self._cell_position(j), self._cell_position(i))
+                image.put_to_window(self.window, self._cell_position(j) + self.padding_x_side, self._cell_position(i) + self.padding_y_side)
 
         # Keep the window being opened
         self.mlx.mlx_hook(self.window, 33, 0, self._close_window, None)
