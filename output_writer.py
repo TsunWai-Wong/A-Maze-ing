@@ -1,15 +1,13 @@
 from typing import Dict, List
+from config_parser import Config
 from maze import Maze
-# walls={"N": True, "E": True, "S": True, "W": True}
-
-
-# for development
-import maze as maze_module
 
 
 class OutputWriter:
-    def __init__(self, filename: str, maze: Maze, directions: List):
-        self.filename = filename
+    def __init__(self, config: Config, maze: Maze, directions: List) -> None:
+        self.entry = config.entry
+        self.exit = config.exit
+        self.filename = config.output_file
         self.maze = maze
         self.directions = directions
 
@@ -37,26 +35,32 @@ class OutputWriter:
                 cell = self.maze.get_cell(j, i)
                 res += self._convert_to_number(cell.walls)
             res += "\n"
-        return res
+        return f"{res}\n"
 
-    def _write_coordinates(self) -> None:
-        pass
+    def _write_coordinates(self) -> str:
+        return (f"{','.join(str(e) for e in self.entry)}\n"
+                f"{','.join(str(e) for e in self.exit)}\n")
 
-    def _write_path(self) -> None:
+    def _write_path(self) -> str:
         return "".join(self.directions)
 
     def write_output(self) -> None:
         try:
-            with open(self.filename) as file:
-                file.write()
-        except IOError:
-            # Disk is full, File system error, Invalid file path
-            print()
+            with open(self.filename, "w") as file:
+                file.write(self._write_maze())
+                file.write(self._write_coordinates())
+                file.write(self._write_path())
         except PermissionError:
-            print(0)
+            print("Error: No permission for the output file")
+            exit(1)
+        except OSError as e:
+            # Disk is full, File system error, Invalid file path
+            print(f"Error: '{self.filename}' {e.strerror}")
+            exit(1)
 
 
 if __name__ == "__main__":
+    import maze as maze_module
     my_maze = Maze(10, 10)
     generator = maze_module.HuntAndKillGenerator(42)
     generator.generate(my_maze)

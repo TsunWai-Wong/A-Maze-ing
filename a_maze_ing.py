@@ -29,9 +29,8 @@ def main() -> None:
         exit_cell = maze.get_cell(*config.exit)
         path, directions = pathfinder.find_path(entry_cell, exit_cell)
 
-        writer = OutputWriter("output.txt", maze, directions)
-        print(writer._write_maze())
-        print(writer._write_path())
+        writer = OutputWriter(config, maze, directions)
+        writer.write_output()
 
         renderer = Renderer()
         renderer.render(maze, path)
