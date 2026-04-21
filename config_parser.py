@@ -92,9 +92,13 @@ class Config:
         if False:
             raise ParseError("Height and width values are too small")
         # ENTRY or EXIT is outside of the maze
-        if False:
-            raise ParseError("ENTRY or EXIT position is outside of the maze")
-        # ENTRY or EXIT is inside the protected area
+        if (self.entry[0] >= self.width or self.entry[0] < 0 or
+           self.entry[1] >= self.height or self.entry[1] < 0):
+            raise ParseError("ENTRY position is outside of the maze")
+        if (self.exit[0] >= self.width or self.exit[0] < 0 or
+           self.exit[1] >= self.height or self.exit[1] < 0):
+            raise ParseError("EXIT position is outside of the maze")
+        # ENTRY or EXIT lies on the protected area
         if False:
             raise ParseError("ENTRY or EXIT cannot be in the protected area")
 
