@@ -9,18 +9,35 @@ DIRECTIONS: dict[str, Tuple[int, int]] = {
 }
 
 OPPOSITE: dict[str, str] = {
-    "N" : "S",
-    "E" : "W",
-    "S" : "N",
-    "W" : "E",
+    "N": "S",
+    "E": "W",
+    "S": "N",
+    "W": "E",
 }
+"""
+Pattern:
++---+           +---+---+---+
+|   |           |   |   |   |
++---+           +---+---+---+
+|   |                   |   |
++---+---+---+   +---+---+---+
+|   |   |   |   |   |   |   |
++---+---+---+   +---+---+---+
+        |   |   |   |
+        +---+   +---+---+---+
+        |   |   |   |   |   |
+        +---+   +---+---+---+
+"""
+
 
 class Cell:
     def __init__(self, x: int, y: int) -> None:
         self.x = x
         self.y = y
-        self.visited = False
+        self.visited: bool = False
         self.walls = {"N": True, "E": True, "S": True, "W": True}
+
+        self.is_pattern: bool = False
 
 
 class Maze:
@@ -33,16 +50,18 @@ class Maze:
         ]
 
     def get_cell(self, x: int, y: int) -> Optional[Cell]:
-        if 0<= x <self.width and 0 <= y < self.height:
+        if 0 <= x < self.width and 0 <= y < self.height:
             return self.grid[y][x]
         return None
-    
+
     def neighbors(self, cell: Cell) -> List[Tuple[str, Cell]]:
         result: List[Tuple[str, Cell]] = []
+
         for direction, (dx, dy) in DIRECTIONS.items():
             nx, ny = cell.x + dx, cell.y + dy
             neighbor = self.get_cell(nx, ny)
-            if neighbor is not None:
+
+            if neighbor is not None and not neighbor.is_pattern:
                 result.append((direction, neighbor))
         return result
 
@@ -57,6 +76,7 @@ class HuntAndKillGenerator:
             random.seed(seed)
 
     def generate(self, maze: Maze) -> None:
+
         current = maze.get_cell(0, 0)
         if current is None:
             return
@@ -83,17 +103,18 @@ class HuntAndKillGenerator:
                         current = next_cell
                         moved = True
                         break
-                
+
                 if not moved:
                     current = self._hunt(maze)
             else:
                 current = self._hunt(maze)
 
     def _hunt(self, maze: Maze) -> Optional[Cell]:
+        candidates = []
         for y in range(maze.height):
             for x in range(maze.width):
                 cell = maze.get_cell(x, y)
-                if cell is None or cell.visited:
+                if cell is None or cell.visited or cell.is_pattern:
                     continue
 
                 visited_neighbors = [
@@ -103,12 +124,17 @@ class HuntAndKillGenerator:
                 ]
 
                 if visited_neighbors:
-                    direction, neighbor = random.choice(visited_neighbors)
-                    maze.remove_wall(cell, neighbor, direction)
-                    cell.visited = True
-                    return cell
-        return None
-    
+                    candidates.append((cell, visited_neighbors))
+
+        if not candidates:
+            return None
+            
+        cell, visited_neighbors = random.choice(candidates)
+        direction, neighbor = random.choice(visited_neighbors)
+        maze.remove_wall(cell, neighbor, direction)
+        cell.visited = True
+        return cell
+
     def _creates_large_room(
             self,
             maze: Maze,
@@ -119,7 +145,7 @@ class HuntAndKillGenerator:
         dx, dy = DIRECTIONS[direction]
         nx, ny = cell.x + dx, cell.y + dy
 
-        #checking small square around target
+        # checking small square around target
         for y in range(ny - 1, ny + 2):
             for x in range(nx - 1, nx + 2):
                 c = maze.get_cell(x, y)
@@ -130,6 +156,60 @@ class HuntAndKillGenerator:
                 if open_walls >= 3:
                     return True
         return False
+
+
+def add_42_pattern(maze: Maze) -> None:
+    # check if fits
+    if maze.width < 9 or maze.height < 7:
+        print("Maze is too small for 42! \n Be more Ambitious.")
+        return
+
+    # finding center of maze
+    center_x = maze.width // 2
+    center_y = maze.height // 2
+
+    # defining 42 coordinates
+    pattern_4 = [
+        (0, 0), (0, 1), (0, 2),
+        (1, 2),
+        (2, 2), (2, 3), (2, 4)
+    ]
+    pattern_2 = [
+        (0, 0), (1, 0), (2, 0),
+        (2, 1),
+        (0, 2), (1, 2), (2, 2),
+        (0, 3),
+        (0, 4), (1, 4), (2, 4),
+    ]
+
+    offset_4_x = center_x - 3
+    offset_4_y = center_y - 2
+
+    offset_2_x = center_x + 1
+    offset_2_y = center_y - 2
+
+    def block_cell(x: int, y: int) -> None:
+        cell = maze.get_cell(x, y)
+        if cell is None:
+            return
+
+        # marking cell as a pattern part
+        cell.is_pattern = True
+        cell.visited = True
+
+        # using fully closed cells for pattern
+        cell.walls = {"N": True, "E": True, "S": True, "W": True}
+
+        for direction, (dx, dy) in DIRECTIONS.items():
+            neighbor = maze.get_cell(x + dx, y + dy)
+            if neighbor:
+                neighbor.walls[OPPOSITE[direction]] = True
+
+    for dx, dy in pattern_4:
+        block_cell(offset_4_x + dx, offset_4_y + dy)
+
+    for dx, dy in pattern_2:
+        block_cell(offset_2_x + dx, offset_2_y + dy)
 
 
 def render_maze(maze: Maze) -> None:
@@ -149,8 +229,11 @@ def render_maze(maze: Maze) -> None:
             if cell is None:
                 continue
 
-            # space in the cell
-            line1 += "   "
+            if cell.is_pattern:
+                line1 += "███"
+            else:
+                # space in the cell
+                line1 += "   "
 
             # right wall
             if cell.walls["E"]:
@@ -170,10 +253,10 @@ def render_maze(maze: Maze) -> None:
 
 def get_user_input() -> tuple[int, int, Optional[int]]:
     try:
-        width = int(input("Yo, gimme maze width, fast!: "))
-        height = int(input("Better also have ma maze height: "))
+        width = int(input("give me width, pls: "))
+        height = int(input("And also height: "))
 
-        seed_input = input("The seed! I need a seed, man!: ")
+        seed_input = input("Last thing - seed. Enter seed number: ")
         seed = int(seed_input) if seed_input else None
 
         if width <= 0 or height <= 0:
@@ -181,14 +264,18 @@ def get_user_input() -> tuple[int, int, Optional[int]]:
 
         return width, height, seed
     except ValueError:
-        print("What's yo goofy ass given me? I need real numbaz!\nI'll show you 10x10 anyways")
+        print("bad numbers, my master.\n But I'll give you 10x10 maze")
         return 10, 10, None
 
+
 def main() -> None:
-    print("=== It's a HUNT and KILL maze generator, man ===")
+    print("=== HUNT and KILL ===")
     width, height, seed = get_user_input()
 
     maze = Maze(width, height)
+
+    add_42_pattern(maze)
+
     generator = HuntAndKillGenerator(seed)
 
     generator.generate(maze)
