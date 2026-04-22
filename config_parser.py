@@ -36,7 +36,7 @@ class Config:
         if value.lower() == "false":
             return False
         raise ParseError(f"Invalid boolean: {value}")
-
+        
     def _read_lines(self, file) -> Dict[str, str]:
         """
         Read the file line by line (ignore when the line starts with #)
@@ -104,8 +104,30 @@ class Config:
            self.exit[1] >= self.height or self.exit[1] < 0):
             raise ParseError("EXIT position is outside of the maze")
         # ENTRY or EXIT lies on the protected area
-        if False:
-            raise ParseError("ENTRY or EXIT cannot be in the protected area")
+        start_point_4 = (self.width // 2 - 3, self.height // 2 - 2)
+        start_point_2 = (self.width // 2 + 1, self.height // 2 - 2)
+
+        pattern_4 = [
+            (0, 0), (0, 1), (0, 2),
+            (1, 2),
+            (2, 2), (2, 3), (2, 4),
+        ]
+        pattern_2 = [
+            (0, 0), (1, 0), (2, 0),
+            (2, 1),
+            (0, 2), (1, 2), (2, 2),
+            (0, 3),
+            (0, 4), (1, 4), (2, 4),
+        ]
+        protected_area = [
+                (start_point_4[0] + dx, start_point_4[1] + dy) for dx, dy in pattern_4
+            ] + [
+                (start_point_2[0] + dx, start_point_2[1] + dy) for dx, dy in pattern_2
+            ]
+        if self.entry in protected_area:
+            raise ParseError("ENTRY cannot be in the protected area")
+        if self.exit in protected_area:
+            raise ParseError("ENTRY cannot be in the protected area")
 
     def parse_config(self, filename: str) -> None:
         """
