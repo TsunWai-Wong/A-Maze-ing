@@ -36,7 +36,7 @@ class Config:
         if value.lower() == "false":
             return False
         raise ParseError(f"Invalid boolean: {value}")
-        
+
     def _read_lines(self, file) -> Dict[str, str]:
         """
         Read the file line by line (ignore when the line starts with #)
@@ -127,7 +127,7 @@ class Config:
         if self.entry in protected_area:
             raise ParseError("ENTRY cannot be in the protected area")
         if self.exit in protected_area:
-            raise ParseError("ENTRY cannot be in the protected area")
+            raise ParseError("EXIT cannot be in the protected area")
 
     def parse_config(self, filename: str) -> None:
         """
