@@ -1,6 +1,6 @@
 import sys
 from config_parser import Config, ParseError
-from maze import Maze, HuntAndKillGenerator
+from maze import Maze, HuntAndKillGenerator, add_42_pattern
 from path_finder import PathFinder
 from output_writer import OutputWriter
 from gui.renderer import Renderer
@@ -20,6 +20,7 @@ def main() -> None:
         config.parse_config(sys.argv[1])
 
         maze = Maze(config.width, config.height)
+        add_42_pattern(maze)
         config.seed = config.seed or 42
         generator = HuntAndKillGenerator(config.seed)
         generator.generate(maze)
@@ -27,13 +28,13 @@ def main() -> None:
         pathfinder = PathFinder(maze)
         entry_cell = maze.get_cell(*config.entry)
         exit_cell = maze.get_cell(*config.exit)
-        path, directions = pathfinder.find_path(entry_cell, exit_cell)
+        path = pathfinder.find_path(entry_cell, exit_cell)
 
-        writer = OutputWriter(config, maze, directions)
+        writer = OutputWriter(config, maze, path[1])
         writer.write_output()
 
-        renderer = Renderer(maze)
-        renderer.render(maze, path)
+        renderer = Renderer(config, maze, path)
+        renderer.render()
 
     except ParseError as e:
         print(f"Error: {e}")

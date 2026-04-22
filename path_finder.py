@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 from maze import Maze, Cell
 
 
@@ -48,7 +48,7 @@ class PathFinder:
                     self.parents[neighbor] = (direction, current)
                     self.queue.append(neighbor)
 
-    def find_path(self, start: Cell, end: Cell) -> List[Cell]:
+    def find_path(self, start: Cell, end: Cell) -> Tuple[List[Cell], List[str]]:
         self._bfs(start, end)
 
         if end not in self.parents:

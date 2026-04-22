@@ -1,9 +1,10 @@
-from typing import Tuple
+from typing import Tuple, Set
 import random
 from mlx import Mlx
+from gui.colour import Colour
 from gui.image import Image
 from config_parser import Config
-from maze import Maze, HuntAndKillGenerator
+from maze import Maze, HuntAndKillGenerator, Cell, add_42_pattern
 from path_finder import PathFinder
 
 # format: 0xAARRGGBB
@@ -11,6 +12,7 @@ white = 0xFFFFFFFF
 green = 0xFF00FF00
 blue = 0xFF0000FF
 yellow = 0xFFFFFF00
+black = 0x00000000
 
 
 class Renderer:
@@ -38,7 +40,7 @@ class Renderer:
         if self.maze.width >= self.maze.height:
             available = self.maze_area_width - 2 * self.min_padding
             step = (available * 9) // (9 * self.maze.width + 1)
-            self.stroke_length = max(1, step // 9)
+            self.stroke_length = max(1, step // 3)
             self.cell_length = step + self.stroke_length
 
             real_width = self.maze.width * step + self.stroke_length
@@ -51,7 +53,7 @@ class Renderer:
         else:
             available = self.maze_area_height - 2 * self.min_padding
             step = (available * 9) // (9 * self.maze.height + 1)
-            self.stroke_length = max(1, step // 9)
+            self.stroke_length = max(1, step // 3)
             self.cell_length = step + self.stroke_length
 
             real_width = self.maze.width * step + self.stroke_length
@@ -60,7 +62,46 @@ class Renderer:
             self.padding_x_side = (self.maze_area_width - real_width) // 2
             self.padding_y_side = (self.maze_area_height - real_height) // 2
 
+        # colour
+        self.bg_colour = Colour("black").value
+        self.wall_colour = Colour("blue").value
+        self.entry_colour = Colour("red").value
+        self.exit_colour = Colour("green").value
+        self.path_colour = Colour("mustard").value
+        self.protect_colour = Colour("purple").value
+        self.interior_colour = Colour("black").value
+
+        # To show the path or not
         self.show_path = True
+
+    def _get_interior_colour(self, cur_position: Tuple[int, int], path_positions: Set[Tuple]):
+        if cur_position == self.config.entry:
+            return self.entry_colour
+        elif cur_position == self.config.exit:
+            return self.exit_colour
+        elif cur_position in path_positions and self.show_path:
+            return self.path_colour
+        elif self.maze.get_cell(*cur_position).is_pattern:
+            return self.protect_colour
+        else:
+            return self.interior_colour
+
+    def _get_wall_colour(self, cell: Cell, direction: str):
+        if self.show_path:
+            if cell in self.path[0] and (cell.x, cell.y) != self.config.exit and direction == self.path[1][self.path[0].index(cell)]:
+                return self.path_colour
+            # Extra check for path wall since some path walls are overwritten
+            elif cell in self.path[0] and (cell.x, cell.y) != self.config.entry:
+                prev_cell = self.path[0].index(cell) - 1
+                prev_direction = self.path[1][prev_cell]
+                if prev_direction == "S" and direction == "N":
+                    return self.path_colour
+                if prev_direction == "E" and direction == "W":
+                    return self.path_colour
+        if cell.walls[direction]:
+            return self.wall_colour
+        else:
+            return self.interior_colour
 
     def _draw_interior_of_cell(self, image: Image, colour: int, x0: int, y0: int) -> None:
         image.draw_shape(
@@ -104,24 +145,24 @@ class Renderer:
         elif keycode == 114:  # R
             seed = random.randint(1, 500)
             self.maze = Maze(self.maze.width, self.maze.height)
+            add_42_pattern(self.maze)
             generator = HuntAndKillGenerator(seed)
             generator.generate(self.maze)
             entry_cell = self.maze.get_cell(*self.config.entry)
             exit_cell = self.maze.get_cell(*self.config.exit)
             self.path = PathFinder(self.maze).find_path(entry_cell, exit_cell)
             self.render()
-            print("R pressed")
         elif keycode == 99:   # C
             print("C pressed")
 
         return 0
 
     def render(self) -> None:
-        path_position = {(cell.x, cell.y) for cell in self.path[0]}
+        path_positions = {(cell.x, cell.y) for cell in self.path[0]}
         step = self.cell_length - self.stroke_length
 
         # background
-        self.canvas.draw_shape(white, 0, 0, self.maze_area_width, self.maze_area_height)
+        self.canvas.draw_shape(self.bg_colour, 0, 0, self.maze_area_width, self.maze_area_height)
 
         for i in range(self.maze.height):
             y0 = i * step + self.padding_y_side
@@ -131,12 +172,12 @@ class Renderer:
 
                 # Walls
                 for direction in ["NE", "SE", "SW", "NW"]:
-                    self._draw_side_of_cell(self.canvas, blue, direction, x0, y0)
+                    self._draw_side_of_cell(self.canvas, self.wall_colour, direction, x0, y0)
 
                 for direction in cell.walls:
                     self._draw_side_of_cell(
                         self.canvas,
-                        blue if cell.walls[direction] else white,
+                        self._get_wall_colour(cell, direction),
                         direction,
                         x0,
                         y0
@@ -145,7 +186,7 @@ class Renderer:
                 # interior
                 self._draw_interior_of_cell(
                     self.canvas,
-                    yellow if (j, i) in path_position and self.show_path else white,
+                    self._get_interior_colour((j, i), path_positions),
                     x0,
                     y0
                 )

@@ -93,6 +93,9 @@ class Config:
             raise ParseError("Width value is too small")
         if self.height < 7:
             raise ParseError("Height value is too small")
+        # Entry and exit must be different
+        if self.entry == self.exit:
+            raise ParseError("Entry and exit must be different")
         # ENTRY or EXIT is outside of the maze
         if (self.entry[0] >= self.width or self.entry[0] < 0 or
            self.entry[1] >= self.height or self.entry[1] < 0):
