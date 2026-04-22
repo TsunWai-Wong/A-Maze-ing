@@ -63,6 +63,9 @@ class Renderer:
             self.padding_y_side = (self.maze_area_height - real_height) // 2
 
         # colour
+        self.keyword_colour = None
+        self.text_colour = None
+
         self.bg_colour = Colour("black").value
         self.wall_colour = Colour("blue").value
         self.entry_colour = Colour("red").value
@@ -130,6 +133,24 @@ class Renderer:
         elif direction == "NW":
             image.draw_shape(colour, x0, y0, self.stroke_length, self.stroke_length)
 
+    def _draw_info_panel(self) -> None:
+        panel_x = self.maze_area_width + 20 # on the right of the maze
+
+        shortcuts = [
+            ("ESC", "Exit programme"),
+            ("R",   "Regenerate maze"),
+            ("P",   "Show / hide path"),
+            ("C",   "Change colour"),
+        ]
+
+        self.mlx.mlx_string_put(self.mlx_ptr, self.window, panel_x, 40, white, "Controls")
+
+        y = 80
+        for key, description in shortcuts:
+            self.mlx.mlx_string_put(self.mlx_ptr, self.window, panel_x, y, yellow, f"[{key}]")
+            self.mlx.mlx_string_put(self.mlx_ptr, self.window, panel_x + 60, y, white,  description)
+            y += 30
+
     def _close_window(self, *_):
         self.mlx.mlx_loop_exit(self.mlx_ptr)
         return 0
@@ -158,6 +179,8 @@ class Renderer:
         return 0
 
     def render(self) -> None:
+        self._draw_info_panel()
+
         path_positions = {(cell.x, cell.y) for cell in self.path[0]}
         step = self.cell_length - self.stroke_length
 
@@ -191,6 +214,7 @@ class Renderer:
                     y0
                 )
         self.canvas.put_to_window(self.window, 0, 0)
+
         # Handle cross button of the window
         self.mlx.mlx_hook(self.window, 33, 0, self._close_window, None)
         # Handle keyboard events
