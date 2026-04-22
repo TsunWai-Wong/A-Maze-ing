@@ -1,7 +1,10 @@
-from typing import List
+from typing import Tuple
+import random
 from mlx import Mlx
 from gui.image import Image
-from maze import Maze
+from config_parser import Config
+from maze import Maze, HuntAndKillGenerator
+from path_finder import PathFinder
 
 # format: 0xAARRGGBB
 white = 0xFFFFFFFF
@@ -11,8 +14,10 @@ yellow = 0xFFFFFF00
 
 
 class Renderer:
-    def __init__(self, maze: Maze):
+    def __init__(self, config: Config, maze: Maze, path: Tuple):
+        self.config = config
         self.maze = maze
+        self.path = path
         self.mlx = Mlx()
         self.mlx_ptr = self.mlx.mlx_init()
 
@@ -32,7 +37,7 @@ class Renderer:
         # wide rectangle
         if self.maze.width >= self.maze.height:
             available = self.maze_area_width - 2 * self.min_padding
-            step = (available * 9) // (9 * self.maze.width + 1)   # ← accounts for stroke
+            step = (available * 9) // (9 * self.maze.width + 1)
             self.stroke_length = max(1, step // 9)
             self.cell_length = step + self.stroke_length
 
@@ -54,6 +59,8 @@ class Renderer:
 
             self.padding_x_side = (self.maze_area_width - real_width) // 2
             self.padding_y_side = (self.maze_area_height - real_height) // 2
+
+        self.show_path = True
 
     def _draw_interior_of_cell(self, image: Image, colour: int, x0: int, y0: int) -> None:
         image.draw_shape(
@@ -86,18 +93,41 @@ class Renderer:
         self.mlx.mlx_loop_exit(self.mlx_ptr)
         return 0
 
-    def render(self, maze: Maze, path: List) -> None:
-        path_position = {(cell.x, cell.y) for cell in path}
+    def _on_key(self, keycode, *_):
+        ESC_KEY = 65307  # X11 Escape key
+
+        if keycode == ESC_KEY:
+            self._close_window()
+        elif keycode == 112:  # P
+            self.show_path = not self.show_path
+            self.render()
+        elif keycode == 114:  # R
+            seed = random.randint(1, 500)
+            self.maze = Maze(self.maze.width, self.maze.height)
+            generator = HuntAndKillGenerator(seed)
+            generator.generate(self.maze)
+            entry_cell = self.maze.get_cell(*self.config.entry)
+            exit_cell = self.maze.get_cell(*self.config.exit)
+            self.path = PathFinder(self.maze).find_path(entry_cell, exit_cell)
+            self.render()
+            print("R pressed")
+        elif keycode == 99:   # C
+            print("C pressed")
+
+        return 0
+
+    def render(self) -> None:
+        path_position = {(cell.x, cell.y) for cell in self.path[0]}
         step = self.cell_length - self.stroke_length
 
         # background
-        # self.canvas.draw_shape(white, 0, 0, self.canvas_width, self.canvas_height)
+        self.canvas.draw_shape(white, 0, 0, self.maze_area_width, self.maze_area_height)
 
-        for i in range(maze.height):
+        for i in range(self.maze.height):
             y0 = i * step + self.padding_y_side
-            for j in range(maze.width):
+            for j in range(self.maze.width):
                 x0 = j * step + self.padding_x_side
-                cell = maze.get_cell(j, i)
+                cell = self.maze.get_cell(j, i)
 
                 # Walls
                 for direction in ["NE", "SE", "SW", "NW"]:
@@ -115,10 +145,13 @@ class Renderer:
                 # interior
                 self._draw_interior_of_cell(
                     self.canvas,
-                    yellow if (j, i) in path_position else white,
+                    yellow if (j, i) in path_position and self.show_path else white,
                     x0,
                     y0
                 )
         self.canvas.put_to_window(self.window, 0, 0)
+        # Handle cross button of the window
         self.mlx.mlx_hook(self.window, 33, 0, self._close_window, None)
+        # Handle keyboard events
+        self.mlx.mlx_hook(self.window, 2, 1 << 0, self._on_key, None)
         self.mlx.mlx_loop(self.mlx_ptr)
