@@ -14,7 +14,8 @@ class Config:
     perfect: bool
     seed: int | None
 
-    def _parse_tuple(self, fieldname: str, value: str | None) -> tuple[int, int] | None:
+    def _parse_tuple(self, fieldname: str,
+                     value: str | None) -> tuple[int, int] | None:
         if value is None:
             raise ParseError(f"Missing mandatory key: {fieldname}")
         parts = value.split(",")
@@ -120,9 +121,11 @@ class Config:
             (0, 4), (1, 4), (2, 4),
         ]
         protected_area = [
-                (start_point_4[0] + dx, start_point_4[1] + dy) for dx, dy in pattern_4
+                (start_point_4[0] + dx, start_point_4[1] + dy)
+                for dx, dy in pattern_4
             ] + [
-                (start_point_2[0] + dx, start_point_2[1] + dy) for dx, dy in pattern_2
+                (start_point_2[0] + dx, start_point_2[1] + dy)
+                for dx, dy in pattern_2
             ]
         if self.entry in protected_area:
             raise ParseError("ENTRY cannot be in the protected area")
@@ -142,4 +145,5 @@ class Config:
         except FileNotFoundError:
             raise ParseError("Config file is not found")
         except PermissionError:
-            raise ParseError("Config file cannot be opened due to permission error")
+            raise ParseError("Config file cannot be opened"
+                             "due to permission error")

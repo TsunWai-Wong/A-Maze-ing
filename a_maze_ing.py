@@ -34,7 +34,7 @@ def main() -> None:
         writer.write_output()
 
         renderer = Renderer(config, maze, path)
-        renderer.render()
+        renderer.run()
 
     except ParseError as e:
         print(f"Error: {e}")

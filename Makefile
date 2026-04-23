@@ -1,28 +1,29 @@
-=== VARIABLES ===
+# === VARIABLES ===
 PY = python3
 MAIN = a_maze_ing.py
 
-=== INSTALL STUFF ===
+# === INSTALL STUFF ===
 install:
 	$(PY) -m pip install --upgrade pip
 	$(PY) -m pip install flake8 mypy
+	pip install mlx-2.2-py3-none-any.whl
 
-=== RUN PROJECT, RUN ===
+# === RUN PROJECT, RUN ===
 run:
 	$(PY) $(MAIN) config.txt
 
-=== DEBUG MODE ===
+# === DEBUG MODE ===
 debug:
 	$(PY) -m pdb $(MAIN) config.txt
 
-=== CLEAN TEMP FILES ===
+# === CLEAN TEMP FILES ===
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type d -name ".mypy_cache" -exec rm -rf {} +
 	find . -type d -name ".pytest_cache" -exec rm -rf {} +
 	find . -type d -name "*.pyc" -delete
 
-=== LINT (MANDATORY) ===
+# === LINT (MANDATORY) ===
 lint:
 	flake8 .
 	mypy . \
@@ -32,7 +33,7 @@ lint:
 		--disallow-untyped-defs \
 		--check-untyped-defs
 
-=== STRICT LINT ===
+# === STRICT LINT ===
 lint-strict:
 	flake8 .
 	mypy . --strict
