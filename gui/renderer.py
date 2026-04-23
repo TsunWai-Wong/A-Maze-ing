@@ -1,4 +1,4 @@
-from typing import Tuple, Set, TypedDict, List
+from typing import Tuple, Set, TypedDict, List, Any
 import random
 from mlx import Mlx  # type: ignore[import-not-found]
 from gui.image import Image
@@ -64,7 +64,8 @@ PALETTES: List[Palette] = [
 
 
 class Renderer:
-    def __init__(self, config: Config, maze: Maze, path: Tuple):
+    def __init__(self, config: Config, maze: Maze,
+                 path: Tuple[List[Cell], List[str]]):
         self.config = config
         self.maze = maze
         self.path = path
@@ -210,8 +211,8 @@ class Renderer:
 
     def _get_interior_colour(
             self, cur_position: Tuple[int, int],
-            path_positions: Set[Tuple]
-            ):
+            path_positions: Set[Tuple[int, int]]
+            ) -> int:
         cell = self.maze.get_cell(*cur_position)
 
         if cur_position == self.config.entry:
@@ -225,7 +226,7 @@ class Renderer:
         else:
             return self.interior_colour
 
-    def _get_wall_colour(self, cell: Cell, direction: str):
+    def _get_wall_colour(self, cell: Cell, direction: str) -> int:
         if self.show_path:
             if (cell in self.path[0] and
                (cell.x, cell.y) != self.config.exit and
@@ -326,11 +327,10 @@ class Renderer:
                 self.stroke_length
             )
 
-    def _close_window(self, *_):
+    def _close_window(self, *_: Any) -> None:
         self.mlx.mlx_loop_exit(self.mlx_ptr)
-        return 0
 
-    def _on_key(self, keycode, *_):
+    def _on_key(self, keycode: int, *_: Any) -> None:
         ESC_KEY = 65307  # X11 Escape key
 
         if keycode == ESC_KEY:
@@ -353,7 +353,6 @@ class Renderer:
             self._draw_colour_panel()
             self._draw_control_panel()
             self._render()
-        return 0
 
     def _render(self) -> None:
         path_positions = {(cell.x, cell.y) for cell in self.path[0]}
@@ -402,7 +401,7 @@ class Renderer:
                 )
         self.canvas.put_to_window(self.window, 0, 0)
 
-    def run(self):
+    def run(self) -> None:
         self._draw_colour_panel()
         self._draw_control_panel()
         self._render()

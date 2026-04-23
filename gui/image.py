@@ -1,5 +1,9 @@
+from typing import Any
+from mlx import Mlx  # type: ignore[import-not-found]
+
+
 class Image():
-    def __init__(self, mlx, mlx_ptr, width: int, height: int):
+    def __init__(self, mlx: Mlx, mlx_ptr: Any, width: int, height: int):
         self.mlx = mlx
         self.mlx_ptr = mlx_ptr
         self.image = self.mlx.mlx_new_image(
@@ -12,7 +16,8 @@ class Image():
                                                   mlx_get_data_addr(self.image)
                                                   )
 
-    def _put_pixel(self, data, sl, x, y, color):
+    def _put_pixel(self, data: Any, sl: int,
+                   x: int, y: int, color: int) -> None:
         index = y * sl + x * 4  # 4 bytes per pixel
 
         data[index + 0] = (color >> 0) & 0xFF   # Blue
@@ -29,7 +34,7 @@ class Image():
                 self._put_pixel(self.data, self.sl,
                                 start_x + i, start_y + j, colour)
 
-    def put_to_window(self, window, start_x: int, start_y: int) -> None:
+    def put_to_window(self, window: Any, start_x: int, start_y: int) -> None:
         self.mlx.mlx_put_image_to_window(
             self.mlx_ptr,
             window,

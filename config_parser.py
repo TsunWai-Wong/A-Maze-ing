@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, Tuple, TextIO
 
 
 class ParseError(Exception):
@@ -38,7 +38,7 @@ class Config:
             return False
         raise ParseError(f"Invalid boolean: {value}")
 
-    def _read_lines(self, file) -> Dict[str, str]:
+    def _read_lines(self, file: TextIO) -> Dict[str, str]:
         """
         Read the file line by line (ignore when the line starts with #)
         Check whether the file contains lines with invalid syntax

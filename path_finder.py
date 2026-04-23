@@ -7,7 +7,7 @@ class PathFinder:
         self.maze = maze
         self.queue: List[Cell] = []
         self.visited: Set[Cell] = set()
-        self.parents: Dict = {}
+        self.parents: Dict[Cell, Tuple[str, Cell] | None] = {}
 
     def _get_neighbors(self, cell: Cell) -> List[Tuple[str, Cell | None]]:
         result = []

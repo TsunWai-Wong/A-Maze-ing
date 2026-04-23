@@ -128,7 +128,7 @@ class HuntAndKillGenerator:
 
         if not candidates:
             return None
-            
+
         cell, visited_neighbors = random.choice(candidates)
         direction, neighbor = random.choice(visited_neighbors)
         maze.remove_wall(cell, neighbor, direction)

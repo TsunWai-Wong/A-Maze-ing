@@ -4,7 +4,8 @@ from maze import Maze
 
 
 class OutputWriter:
-    def __init__(self, config: Config, maze: Maze, directions: List) -> None:
+    def __init__(self, config: Config, maze: Maze,
+                 directions: List[str]) -> None:
         self.entry = config.entry
         self.exit = config.exit
         self.filename = config.output_file
