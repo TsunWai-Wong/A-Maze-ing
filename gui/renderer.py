@@ -1,14 +1,25 @@
-from typing import Tuple, Set
+from typing import Tuple, Set, TypedDict, List
 import random
-from mlx import Mlx
-# from gui.colour import Colour
+from mlx import Mlx  # type: ignore[import-not-found]
 from gui.image import Image
 from config_parser import Config
 from maze import Maze, HuntAndKillGenerator, Cell, add_42_pattern
 from path_finder import PathFinder
 
+
+class Palette(TypedDict):
+    name: str
+    bg: int
+    wall: int
+    entry: int
+    exit: int
+    path: int
+    pattern: int
+    interior: int
+
+
 # format: 0xAARRGGBB
-PALETTES = [
+PALETTES: List[Palette] = [
     {
         "name":     "Moonlit Paper",
         "bg":       0xFF2E3440,   # Dark Charcoal
@@ -201,13 +212,15 @@ class Renderer:
             self, cur_position: Tuple[int, int],
             path_positions: Set[Tuple]
             ):
+        cell = self.maze.get_cell(*cur_position)
+
         if cur_position == self.config.entry:
             return self.entry_colour
         elif cur_position == self.config.exit:
             return self.exit_colour
         elif cur_position in path_positions and self.show_path:
             return self.path_colour
-        elif self.maze.get_cell(*cur_position).is_pattern:
+        elif cell and cell.is_pattern:
             return self.protect_colour
         else:
             return self.interior_colour
@@ -370,14 +383,15 @@ class Renderer:
                         x0, y0
                     )
 
-                for direction in cell.walls:
-                    self._draw_side_of_cell(
-                        self.canvas,
-                        self._get_wall_colour(cell, direction),
-                        direction,
-                        x0,
-                        y0
-                    )
+                if cell:
+                    for direction in cell.walls:
+                        self._draw_side_of_cell(
+                            self.canvas,
+                            self._get_wall_colour(cell, direction),
+                            direction,
+                            x0,
+                            y0
+                        )
 
                 # interior
                 self._draw_interior_of_cell(

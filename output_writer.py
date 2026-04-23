@@ -11,9 +11,9 @@ class OutputWriter:
         self.maze = maze
         self.directions = directions
 
-    def _convert_to_number(self, walls: Dict[str, bool]) -> None:
+    def _convert_to_number(self, walls: Dict[str, bool]) -> str:
         """
-        e.g. from south and west to 3
+        e.g. from south and west to "3"
         """
         res = 0
         if walls.get("N"):
@@ -33,7 +33,8 @@ class OutputWriter:
         for i in range(maze_height):
             for j in range(maze_width):
                 cell = self.maze.get_cell(j, i)
-                res += self._convert_to_number(cell.walls)
+                if cell:
+                    res += self._convert_to_number(cell.walls)
             res += "\n"
         return f"{res}\n"
 
@@ -57,18 +58,3 @@ class OutputWriter:
             # Disk is full, File system error, Invalid file path
             print(f"Error: '{self.filename}' {e.strerror}")
             exit(1)
-
-
-if __name__ == "__main__":
-    import maze as maze_module
-    my_maze = Maze(10, 10)
-    generator = maze_module.HuntAndKillGenerator(42)
-    generator.generate(my_maze)
-    maze_module.render_maze(my_maze)
-    directions = ['S', 'S', 'E', 'E', 'E', 'E', 'N', 'E', 'E', 'E',
-                  'E', 'N', 'E', 'S', 'S', 'S', 'S', 'S', 'W', 'W',
-                  'S', 'E', 'E', 'S', 'S', 'W', 'W', 'W', 'S', 'E',
-                  'E', 'E']
-    writer = OutputWriter("output.txt", my_maze, directions)
-    print(writer._write_maze())
-    print(writer._write_path())

@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Tuple
 
 
 class ParseError(Exception):
@@ -15,7 +15,7 @@ class Config:
     seed: int | None
 
     def _parse_tuple(self, fieldname: str,
-                     value: str | None) -> tuple[int, int] | None:
+                     value: str | None) -> Tuple[int, int]:
         if value is None:
             raise ParseError(f"Missing mandatory key: {fieldname}")
         parts = value.split(",")
@@ -29,7 +29,7 @@ class Config:
         except ValueError:
             raise ParseError(f"Invalid tuple format: {value}")
 
-    def _parse_bool(self, fieldname: str, value: str) -> bool:
+    def _parse_bool(self, fieldname: str, value: str | None) -> bool:
         if value is None:
             raise ParseError(f"Missing mandatory key: {fieldname}")
         if value.lower() == "true":
@@ -85,7 +85,7 @@ class Config:
         except ValueError as e:
             raise ParseError(f"Invalid value: {e}")
 
-    def _check_valid_dimension(self) -> bool:
+    def _check_valid_dimension(self) -> None:
         """
         check whether the file contain impossible maze parameters
         """

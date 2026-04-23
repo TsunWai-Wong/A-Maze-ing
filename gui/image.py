@@ -21,7 +21,7 @@ class Image():
         data[index + 3] = (color >> 24) & 0xFF  # Alpha
 
     def draw_shape(self,
-                   colour: str,
+                   colour: int,
                    start_x: int, start_y: int,
                    x_length: int, y_length: int) -> None:
         for i in range(x_length):

@@ -1,15 +1,15 @@
-from typing import List, Tuple
+from typing import List, Tuple, Set, Dict
 from maze import Maze, Cell
 
 
 class PathFinder:
     def __init__(self, maze: Maze):
         self.maze = maze
-        self.queue = []
-        self.visited = set()
-        self.parents = {}
+        self.queue: List[Cell] = []
+        self.visited: Set[Cell] = set()
+        self.parents: Dict = {}
 
-    def _get_neighbors(self, cell: Cell) -> List[Cell]:
+    def _get_neighbors(self, cell: Cell) -> List[Tuple[str, Cell | None]]:
         result = []
         for direction in cell.walls:
             if cell.walls[direction] is False:
@@ -27,7 +27,8 @@ class PathFinder:
                     neighbor_y = cell.y
                 if (neighbor_x >= 0 and neighbor_x < self.maze.width and
                    neighbor_y >= 0 and neighbor_y < self.maze.height):
-                    result.append((direction, self.maze.get_cell(neighbor_x, neighbor_y)))
+                    result.append((direction, self.maze.get_cell(neighbor_x,
+                                                                 neighbor_y)))
         return result
 
     def _bfs(self, start: Cell, end: Cell) -> None:
@@ -43,16 +44,22 @@ class PathFinder:
                 break
 
             for direction, neighbor in self._get_neighbors(current):
+                if neighbor is None:
+                    continue
                 if neighbor not in self.visited:
                     self.visited.add(neighbor)
                     self.parents[neighbor] = (direction, current)
                     self.queue.append(neighbor)
 
-    def find_path(self, start: Cell, end: Cell) -> Tuple[List[Cell], List[str]]:
+    def find_path(self, start: Cell | None,
+                  end: Cell | None) -> Tuple[List[Cell], List[str]]:
+        if not start or not end:
+            return ([], [])
+
         self._bfs(start, end)
 
         if end not in self.parents:
-            return []
+            return ([], [])
 
         path = []
         directions = []
@@ -70,19 +77,3 @@ class PathFinder:
         path.reverse()
         directions.reverse()
         return path, directions
-
-
-if __name__ == "__main__":
-    from maze import HuntAndKillGenerator, render_maze
-    maze = Maze(10, 10)
-    generator = HuntAndKillGenerator(42)
-    generator.generate(maze)
-    render_maze(maze)
-
-    pathfinder = PathFinder(maze)
-    start_cell = maze.get_cell(0, 0)
-    end_cell = maze.get_cell(9, 9)
-    path, directions = pathfinder.find_path(start_cell, end_cell)
-    for cell in path:
-        print(f"{cell.x}, {cell.y}")
-    print(directions)
