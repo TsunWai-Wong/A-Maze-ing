@@ -8,7 +8,9 @@ class Image():
             height
         )
         # Use an image buffer
-        self.data, self.bpp, self.sl, self.fmt = self.mlx.mlx_get_data_addr(self.image)
+        self.data, self.bpp, self.sl, self.fmt = (self.mlx.
+                                                  mlx_get_data_addr(self.image)
+                                                  )
 
     def _put_pixel(self, data, sl, x, y, color):
         index = y * sl + x * 4  # 4 bytes per pixel
@@ -24,7 +26,8 @@ class Image():
                    x_length: int, y_length: int) -> None:
         for i in range(x_length):
             for j in range(y_length):
-                self._put_pixel(self.data, self.sl, start_x + i, start_y + j, colour)
+                self._put_pixel(self.data, self.sl,
+                                start_x + i, start_y + j, colour)
 
     def put_to_window(self, window, start_x: int, start_y: int) -> None:
         self.mlx.mlx_put_image_to_window(

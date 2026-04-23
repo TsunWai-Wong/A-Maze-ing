@@ -137,7 +137,7 @@ class Renderer:
         self.palette_index = (self.palette_index + 1) % len(PALETTES)
         self._apply_palette()
 
-    def _draw_info_panel(self) -> None:
+    def _draw_colour_panel(self) -> None:
         # fill panel background
         self.info_canvas.draw_shape(
             self.bg_colour, 0, 0, self.info_width, self.window_height
@@ -171,17 +171,22 @@ class Renderer:
             name,
         )
 
+    def _draw_control_panel(self) -> None:
+        margin_x = 20
+        margin_y = 40
+        text_x = self.maze_area_width + margin_x
+        text_y = margin_y + 10
+
+        controls_y = text_y + 120
+        self.mlx.mlx_string_put(self.mlx_ptr, self.window, text_x, controls_y,
+                                self.text_colour, "Controls")
+
         shortcuts = [
             ("ESC", "Exit programme"),
             ("R",   "Regenerate maze"),
             ("P",   "Show / hide path"),
             ("C",   "Change colour"),
         ]
-
-        controls_y = text_y + 120
-        self.mlx.mlx_string_put(self.mlx_ptr, self.window, text_x,
-                                controls_y, self.text_colour, "Controls")
-
         instruction_y = controls_y + 30
         for key, description in shortcuts:
             self.mlx.mlx_string_put(self.mlx_ptr, self.window, text_x,
@@ -332,12 +337,12 @@ class Renderer:
             self._render()
         elif keycode == 99:   # C
             self._cycle_palette()
+            self._draw_colour_panel()
+            self._draw_control_panel()
             self._render()
-
         return 0
 
     def _render(self) -> None:
-        self._draw_info_panel()
         path_positions = {(cell.x, cell.y) for cell in self.path[0]}
         step = self.cell_length - self.stroke_length
 
@@ -384,6 +389,8 @@ class Renderer:
         self.canvas.put_to_window(self.window, 0, 0)
 
     def run(self):
+        self._draw_colour_panel()
+        self._draw_control_panel()
         self._render()
         # Handle cross button of the window
         self.mlx.mlx_hook(self.window, 33, 0, self._close_window, None)
