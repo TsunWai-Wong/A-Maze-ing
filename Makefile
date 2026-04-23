@@ -1,6 +1,7 @@
 # === VARIABLES ===
 PY = python3
 MAIN = a_maze_ing.py
+CONFIG_FILE = default_config.txt
 
 # === INSTALL STUFF ===
 install:
@@ -10,11 +11,11 @@ install:
 
 # === RUN PROJECT, RUN ===
 run:
-	$(PY) $(MAIN) config.txt
+	$(PY) $(MAIN) $(CONFIG_FILE)
 
 # === DEBUG MODE ===
 debug:
-	$(PY) -m pdb $(MAIN) config.txt
+	$(PY) -m pdb $(MAIN) $(CONFIG_FILE)
 
 # === CLEAN TEMP FILES ===
 clean:

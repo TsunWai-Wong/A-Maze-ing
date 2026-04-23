@@ -3,13 +3,36 @@ from maze import Maze, Cell
 
 
 class PathFinder:
+    """
+    Finds a path in a maze using BFS search.
+
+    Implements breadth-first search to explore reachable cells and
+    reconstruct a path from start to end.
+
+    Attributes:
+    queue (List[Cell]): BFS exploration queue.
+    visited (Set[Cell]): Set of visited cells.
+    parents (Dict[Cell, Tuple[str, Cell] | None]): Mapping of
+    each cell to its parent and direction.
+    maze (Maze): Maze instance being processed.
+    """
     def __init__(self, maze: Maze):
+        """Initialize the path finder with a maze."""
         self.maze = maze
         self.queue: List[Cell] = []
         self.visited: Set[Cell] = set()
         self.parents: Dict[Cell, Tuple[str, Cell] | None] = {}
 
     def _get_neighbors(self, cell: Cell) -> List[Tuple[str, Cell | None]]:
+        """
+        Get accessible neighboring cells from the current cell.
+
+        Args:
+        cell (Cell): Current cell.
+
+        Returns:
+        List[Tuple[str, Cell | None]]: Direction and neighbor pairs.
+        """
         result = []
         for direction in cell.walls:
             if cell.walls[direction] is False:
@@ -32,6 +55,13 @@ class PathFinder:
         return result
 
     def _bfs(self, start: Cell, end: Cell) -> None:
+        """
+        Perform Breadth-first search to explore the maze.
+
+        Args:
+        start (Cell): Start cell.
+        end (Cell): End cell.
+        """
         self.queue = [start]
         self.visited = {start}
         self.parents = {start: None}
@@ -53,6 +83,16 @@ class PathFinder:
 
     def find_path(self, start: Cell | None,
                   end: Cell | None) -> Tuple[List[Cell], List[str]]:
+        """
+        Find a path from start to end in the maze.
+
+        Args:
+        start (Cell | None): Start cell.
+        end (Cell | None): End cell.
+
+        Returns:
+        Tuple[List[Cell], List[str]]: Path and directions.
+        """
         if not start or not end:
             return ([], [])
 

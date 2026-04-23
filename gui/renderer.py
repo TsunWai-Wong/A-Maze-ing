@@ -1,6 +1,6 @@
 from typing import Tuple, Set, TypedDict, List, Any
 import random
-from mlx import Mlx  # type: ignore[import-not-found]
+from mlx import Mlx
 from gui.image import Image
 from config_parser import Config
 from maze import Maze, HuntAndKillGenerator, Cell, add_42_pattern
@@ -64,8 +64,33 @@ PALETTES: List[Palette] = [
 
 
 class Renderer:
+    """
+    Handles graphical rendering and interactive display of a maze.
+
+    Provides a visual interface for drawing the maze, solution path,
+    and UI panels using an MLX-based graphics system. Supports
+    keyboard controls for interaction and regeneration.
+
+    Attributes:
+    config (Config): Maze configuration settings.
+    maze (Maze): Maze structure to render.
+    path (Tuple[List[Cell], List[str]]): Computed path and directions.
+    mlx (Mlx): MLX graphics interface.
+    mlx_ptr (Any): MLX context pointer.
+    window (Any): Main rendering window.
+    canvas (Image): Main maze drawing surface.
+    info_canvas (Image): UI information panel surface.
+    window_width (int): Width of rendering window.
+    window_height (int): Height of rendering window.
+    info_width (int): Width of side information panel.
+    cell_length (int): Pixel size of each maze cell.
+    stroke_length (int): Thickness of maze walls.
+    palette_index (int): Index of active color palette.
+    show_path (bool): Whether solution path is displayed.
+    """
     def __init__(self, config: Config, maze: Maze,
                  path: Tuple[List[Cell], List[str]]):
+        """Initialize the renderer"""
         self.config = config
         self.maze = maze
         self.path = path
@@ -133,6 +158,10 @@ class Renderer:
         self.show_path = True
 
     def _apply_palette(self) -> None:
+        """
+        Apply the currently selected color palette.
+        Updates rendering colors based on the active palette index.
+        """
         p = PALETTES[self.palette_index]
         self.bg_colour = p["bg"]
         self.wall_colour = p["wall"]
@@ -144,12 +173,20 @@ class Renderer:
         self.keyword_colour = 0xFFFFFF00
         self.text_colour = 0xFFFFFFFF
 
-    # to wrap around when list of palettes ends
     def _cycle_palette(self) -> None:
+        """
+        Cycle to the next available color palette.
+
+        Advances the palette index and wraps around when the end of
+        the palette list is reached, then applies the new palette.
+        """
         self.palette_index = (self.palette_index + 1) % len(PALETTES)
         self._apply_palette()
 
     def _draw_colour_panel(self) -> None:
+        """
+        Render the color palette selection panel.
+        """
         # fill panel background
         self.info_canvas.draw_shape(
             self.bg_colour, 0, 0, self.info_width, self.window_height
@@ -184,6 +221,9 @@ class Renderer:
         )
 
     def _draw_control_panel(self) -> None:
+        """
+        Render the control instruction panel.
+        """
         margin_x = 20
         margin_y = 40
         text_x = self.maze_area_width + margin_x
@@ -213,6 +253,20 @@ class Renderer:
             self, cur_position: Tuple[int, int],
             path_positions: Set[Tuple[int, int]]
             ) -> int:
+        """
+        Determine the interior color of a maze cell.
+
+        Selects the appropriate color based on cell position and state,
+        including entry, exit, path, and special pattern cells.
+
+        Args:
+        cur_position (Tuple[int, int]): Current cell coordinates.
+        path_positions (Set[Tuple[int, int]]): Set of coordinates
+        belonging to the solution path.
+
+        Returns:
+        int: ARGB color value for the cell interior.
+        """
         cell = self.maze.get_cell(*cur_position)
 
         if cur_position == self.config.entry:
@@ -227,6 +281,19 @@ class Renderer:
             return self.interior_colour
 
     def _get_wall_colour(self, cell: Cell, direction: str) -> int:
+        """
+        Determine the wall color for a maze cell edge.
+
+        Chooses the appropriate color for a wall segment, including
+        path highlighting when enabled, normal walls, and open passages.
+
+        Args:
+        cell (Cell): Current maze cell.
+        direction (str): Wall direction ('N', 'E', 'S', or 'W').
+
+        Returns:
+        int: ARGB color value for the wall segment.
+        """
         if self.show_path:
             if (cell in self.path[0] and
                (cell.x, cell.y) != self.config.exit and
@@ -250,6 +317,15 @@ class Renderer:
             self, image: Image,
             colour: int, x0: int, y0: int
             ) -> None:
+        """
+        Draw the interior area of a maze cell.
+
+        Args:
+        image (Image): Target image buffer.
+        colour (int): Fill color for the cell interior.
+        x0 (int): Top-left x coordinate of the cell.
+        y0 (int): Top-left y coordinate of the cell.
+        """
         image.draw_shape(
             colour,
             x0 + self.stroke_length,
@@ -265,6 +341,16 @@ class Renderer:
             x0: int,
             y0: int
             ) -> None:
+        """
+        Draw a wall segment for a given cell side.
+
+        Args:
+        image (Image): Target image buffer.
+        colour (int): Color of the wall segment.
+        direction (str): Wall direction (N, NE, E, SE, S, SW, W, NW).
+        x0 (int): Top-left x coordinate of the cell.
+        y0 (int): Top-left y coordinate of the cell.
+        """
         if direction == "N":
             image.draw_shape(
                 colour, x0 + self.stroke_length,
@@ -328,9 +414,23 @@ class Renderer:
             )
 
     def _close_window(self, *_: Any) -> None:
+        """
+        Exit the main rendering loop and close the window.
+        Triggers termination of the MLX event loop.
+        """
         self.mlx.mlx_loop_exit(self.mlx_ptr)
 
     def _on_key(self, keycode: int, *_: Any) -> None:
+        """
+        Handle keyboard input events for interactive controls.
+
+        Processes key presses to control application behavior such as
+        exiting, toggling path visibility, regenerating the maze, and
+        cycling color palettes.
+
+        Args:
+        keycode (int): Pressed key code.
+        """
         ESC_KEY = 65307  # X11 Escape key
 
         if keycode == ESC_KEY:
@@ -339,7 +439,7 @@ class Renderer:
             self.show_path = not self.show_path
             self._render()
         elif keycode == 114:  # R
-            seed = random.randint(1, 500)
+            seed = random.randint(1, 10000)
             self.maze = Maze(self.maze.width, self.maze.height)
             add_42_pattern(self.maze)
             generator = HuntAndKillGenerator(seed)
@@ -355,6 +455,12 @@ class Renderer:
             self._render()
 
     def _render(self) -> None:
+        """
+        Render the complete maze frame.
+
+        Draws the full maze including background, walls, cell interiors,
+        and optional solution path highlighting.
+        """
         path_positions = {(cell.x, cell.y) for cell in self.path[0]}
         step = self.cell_length - self.stroke_length
 
@@ -402,6 +508,14 @@ class Renderer:
         self.canvas.put_to_window(self.window, 0, 0)
 
     def run(self) -> None:
+        """
+        Start the main rendering loop for the application.
+
+        Initializes UI panels, renders the maze, and registers event
+        handlers for window close and keyboard input.
+
+        Enters the MLX event loop to keep the application running.
+        """
         self._draw_colour_panel()
         self._draw_control_panel()
         self._render()

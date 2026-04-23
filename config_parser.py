@@ -2,10 +2,26 @@ from typing import Dict, Tuple, TextIO
 
 
 class ParseError(Exception):
+    """Error class when handling the config file"""
     pass
 
 
 class Config:
+    """
+    Configuration data container for maze settings.
+
+    Stores parsed and validated parameters required to generate
+    and manage a maze.
+
+    Attributes:
+    width (int): Width of the maze grid.
+    height (int): Height of the maze grid.
+    entry (tuple[int, int]): Entry coordinate in the maze.
+    exit (tuple[int, int]): Exit coordinate in the maze.
+    output_file (str): Output file path for results.
+    perfect (bool): Whether the maze is perfect (no loops).
+    seed (int | None): Random seed for generation.
+    """
     width: int
     height: int
     entry: tuple[int, int]
@@ -16,6 +32,16 @@ class Config:
 
     def _parse_tuple(self, fieldname: str,
                      value: str | None) -> Tuple[int, int]:
+        """
+        Parse a comma-separated string into a tuple of two integers.
+
+        Args:
+        fieldname (str): Name of the field being parsed.
+        value (str | None): Input string with two comma-separated numbers.
+
+        Returns:
+        Tuple[int, int]: Parsed integer tuple (x, y).
+        """
         if value is None:
             raise ParseError(f"Missing mandatory key: {fieldname}")
         parts = value.split(",")
@@ -30,6 +56,16 @@ class Config:
             raise ParseError(f"Invalid tuple format: {value}")
 
     def _parse_bool(self, fieldname: str, value: str | None) -> bool:
+        """
+        Parse a boolean value from string input.
+
+        Args:
+        fieldname (str): Name of the field.
+        value (str | None): Input value to parse.
+
+        Returns:
+        bool: Parsed boolean value.
+        """
         if value is None:
             raise ParseError(f"Missing mandatory key: {fieldname}")
         if value.lower() == "true":
@@ -40,9 +76,16 @@ class Config:
 
     def _read_lines(self, file: TextIO) -> Dict[str, str]:
         """
-        Read the file line by line (ignore when the line starts with #)
-        Check whether the file contains lines with invalid syntax
-        Save the key-value pairs in a dictionary
+        Read lines from a file into a key-value dictionary.
+
+        Ignores empty lines and comments starting with '#'. Each valid
+        line must contain a key and value separated by '='.
+
+        Args:
+        file (TextIO): Open file-like object to read from.
+
+        Returns:
+        Dict[str, str]: Parsed key-value pairs with uppercase keys.
         """
         data = {}
         for line in file:
@@ -63,10 +106,11 @@ class Config:
 
     def _check_fields_available(self, data: Dict[str, str]) -> None:
         """
-        Check whether the dictionary contains all mandatory keys
-        Then check whether the dictionary contains all mandatory values
-        The check whether all keys have values in correct datatype
-        (e.g. int for all x, y values)
+        Validate and extract required configuration fields.
+        Ensures all mandatory keys exist in the input dictionary and
+        converts values into the correct data types.
+
+        Args: data (Dict[str, str]): Input configuration dictionary.
         """
         try:
             self.width = int(data["WIDTH"])
@@ -87,7 +131,13 @@ class Config:
 
     def _check_valid_dimension(self) -> None:
         """
-        check whether the file contain impossible maze parameters
+        Validate maze dimensions and positional constraints.
+
+        Check:
+        Minimum width and height requirements are met.
+        Entry and exit points are distinct.
+        Entry and exit are within bounds.
+        Entry and exit are not located in protected areas.
         """
         # X and Y do not exceed the smallest area
         if self.width < 9:
@@ -134,7 +184,14 @@ class Config:
 
     def parse_config(self, filename: str) -> None:
         """
-        Read the file by using the helper functions in this file
+        Parse and validate a configuration file.
+
+        Opens a configuration file, reads and parses its contents,
+        and validates required fields and constraints using helper
+        methods.
+
+        Args:
+        filename (str): Path to the configuration file.
         """
         try:
             with open(filename) as file:

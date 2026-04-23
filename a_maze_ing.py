@@ -7,6 +7,10 @@ from gui.renderer import Renderer
 
 
 def check_argv() -> None:
+    """
+    Validate command line arguments.
+    Ensures exactly one configuration file argument is provided.
+    """
     if len(sys.argv) < 2:
         raise ParseError("config file is not provided as an argument")
     if len(sys.argv) > 2:
@@ -14,6 +18,12 @@ def check_argv() -> None:
 
 
 def main() -> None:
+    """
+    Program entry point for maze generation and execution.
+
+    Parses configuration, generates a maze, finds a path,
+    writes output, and renders in a Graphical User Interface.
+    """
     try:
         check_argv()
         config = Config()

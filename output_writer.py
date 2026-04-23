@@ -4,8 +4,22 @@ from maze import Maze
 
 
 class OutputWriter:
+    """
+    Handles writing maze generation output to a file.
+    This class formats and writes  the maze structure,
+    entry/exit coordinates, and solution path, into
+    a specified output file.
+
+    Attributes:
+    entry (tuple[int, int]): Maze entry coordinate.
+    exit (tuple[int, int]): Maze exit coordinate.
+    filename (str): Output file path.
+    maze (Maze): Maze instance containing grid data.
+    directions (List[str]): Path directions for solution output.
+    """
     def __init__(self, config: Config, maze: Maze,
                  directions: List[str]) -> None:
+        """Initialize the output writer"""
         self.entry = config.entry
         self.exit = config.exit
         self.filename = config.output_file
@@ -14,7 +28,14 @@ class OutputWriter:
 
     def _convert_to_number(self, walls: Dict[str, bool]) -> str:
         """
-        e.g. from south and west to "3"
+        Convert wall configuration to a hexadecimal digit representation.
+
+        Args:
+        walls (Dict[str, bool]): Dictionary indicating presence of
+        walls in directions 'N', 'E', 'S', and 'W'.
+
+        Returns:
+        str: Single hexadecimal character representing the wall state.
         """
         res = 0
         if walls.get("N"):
@@ -28,6 +49,14 @@ class OutputWriter:
         return hex(res)[-1].upper()
 
     def _write_maze(self) -> str:
+        """
+        Serialize the maze structure into a string representation.
+        Iterates through all cells in the maze grid and converts each
+        cell's wall configuration into a hexadecimal character.
+
+        Returns:
+        str: String representation of the full maze layout.
+        """
         res = ""
         maze_height = self.maze.height
         maze_width = self.maze.width
@@ -40,13 +69,31 @@ class OutputWriter:
         return f"{res}\n"
 
     def _write_coordinates(self) -> str:
+        """
+        Format entry and exit coordinates as output string.
+
+        Returns:
+        str: Formatted entry and exit coordinates.
+        """
         return (f"{','.join(str(e) for e in self.entry)}\n"
                 f"{','.join(str(e) for e in self.exit)}\n")
 
     def _write_path(self) -> str:
+        """
+        Joins all direction steps into a single continuous string.
+
+        Returns:
+        str: Concatenated path directions.
+        """
         return "".join(self.directions)
 
     def write_output(self) -> None:
+        """
+        Write maze data, coordinates, and path to an output file.
+
+        Creates or overwrites the output file and writes the serialized
+        maze, entry/exit coordinates, and solution path in order.
+        """
         try:
             with open(self.filename, "w") as file:
                 file.write(self._write_maze())

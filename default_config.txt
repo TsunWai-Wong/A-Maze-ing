@@ -1,0 +1,20 @@
+# Number of columns in the maze
+WIDTH=32
+
+# Number of rows in the maze
+HEIGHT=21
+
+# Coordinates of the starting point
+ENTRY=13,11
+
+# Coordinates of the ending point
+EXIT=16,10
+
+# Name of the output file
+OUTPUT_FILE=maze.txt
+
+# Whether it is a perfect (no loop or isolated cell)
+PERFECT=True
+
+# Optional: Seed for generation
+# SEED=42
