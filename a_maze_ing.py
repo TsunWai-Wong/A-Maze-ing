@@ -18,6 +18,22 @@ def check_argv() -> None:
         raise ParseError("extra argument is provided")
 
 
+def check_visualiable(config: Config) -> None:
+    """
+    Ensures that the width and height do not exceed the maximum
+    allowed size for visualization.
+
+    Args:
+    config (Config): Configuration containing dimensions.
+    """
+    if config.width > 429:
+        raise Exception("Maximum width to be visualised is "
+                        "429 cells. See output file for the result.")
+    elif config.height > 429:
+        raise Exception("Maximum height to be visualised is "
+                        "429 cells. See output file for the result.")
+
+
 def main() -> None:
     """
     Program entry point for maze generation and execution.
@@ -44,6 +60,7 @@ def main() -> None:
         writer = OutputWriter(config, maze, path[1])
         writer.write_output()
 
+        check_visualiable(config)
         renderer = Renderer(config, maze, path)
         renderer.run()
 

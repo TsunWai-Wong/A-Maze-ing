@@ -38,13 +38,13 @@ class OutputWriter:
         str: Single hexadecimal character representing the wall state.
         """
         res = 0
-        if walls.get("N"):
-            res += 8
-        if walls.get("E"):
-            res += 4
-        if walls.get("S"):
-            res += 2
         if walls.get("W"):
+            res += 8
+        if walls.get("S"):
+            res += 4
+        if walls.get("E"):
+            res += 2
+        if walls.get("N"):
             res += 1
         return hex(res)[-1].upper()
 
