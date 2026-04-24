@@ -1,4 +1,5 @@
 import sys
+import random
 from config_parser import Config, ParseError
 from maze import Maze, HuntAndKillGenerator, add_42_pattern
 from path_finder import PathFinder
@@ -31,7 +32,7 @@ def main() -> None:
 
         maze = Maze(config.width, config.height)
         add_42_pattern(maze)
-        config.seed = config.seed or 42
+        config.seed = config.seed or random.randint(1, 10000)
         generator = HuntAndKillGenerator(config.seed)
         generator.generate(maze)
 

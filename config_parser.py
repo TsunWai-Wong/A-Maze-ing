@@ -144,6 +144,8 @@ class Config:
             raise ParseError("Width value is too small")
         if self.height < 7:
             raise ParseError("Height value is too small")
+        if self.width * self.height > 32000:
+            raise ParseError("maximum area of the maze is 32000 cells")
         # Entry and exit must be different
         if self.entry == self.exit:
             raise ParseError("Entry and exit must be different")

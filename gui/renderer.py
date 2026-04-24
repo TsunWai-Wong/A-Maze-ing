@@ -461,6 +461,13 @@ class Renderer:
         Draws the full maze including background, walls, cell interiors,
         and optional solution path highlighting.
         """
+        if self.config.width > 429:
+            raise Exception("Error: maximum width to be visualised is"
+                            "429 cells")
+        elif self.config.height > 429:
+            raise Exception("Error: maximum height to be visualised is"
+                            "429 cells")
+
         path_positions = {(cell.x, cell.y) for cell in self.path[0]}
         step = self.cell_length - self.stroke_length
 
