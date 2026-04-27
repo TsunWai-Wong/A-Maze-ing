@@ -1,14 +1,14 @@
 # Number of columns in the maze
-WIDTH=32
+WIDTH=100
 
 # Number of rows in the maze
-HEIGHT=21
+HEIGHT=100
 
 # Coordinates of the starting point
-ENTRY=13,11
+ENTRY=0,0
 
 # Coordinates of the ending point
-EXIT=16,10
+EXIT=99,99
 
 # Name of the output file
 OUTPUT_FILE=maze.txt

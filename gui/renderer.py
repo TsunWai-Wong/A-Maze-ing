@@ -5,9 +5,13 @@ from gui.image import Image
 from config_parser import Config
 from maze import Maze, HuntAndKillGenerator, Cell, add_42_pattern
 from path_finder import PathFinder
+from output_writer import OutputWriter
 
 
 class Palette(TypedDict):
+    """
+    Represent a color palette for rendering elements.
+    """
     name: str
     bg: int
     wall: int
@@ -247,6 +251,7 @@ class Renderer:
             self.mlx.mlx_string_put(self.mlx_ptr, self.window, text_x + 60,
                                     instruction_y, self.text_colour,
                                     description)
+            self.mlx.mlx_sync(self.mlx_ptr, 3, self.window)
             instruction_y += 30
 
     def _get_interior_colour(
@@ -448,7 +453,9 @@ class Renderer:
             exit_cell = self.maze.get_cell(*self.config.exit)
             self.path = PathFinder(self.maze).find_path(entry_cell, exit_cell)
             self._render()
-        elif keycode == 99:   # C
+            writer = OutputWriter(self.config, self.maze, self.path[1])
+            writer.write_output()
+        elif keycode == 99:  # C
             self._cycle_palette()
             self._draw_colour_panel()
             self._draw_control_panel()
@@ -461,13 +468,6 @@ class Renderer:
         Draws the full maze including background, walls, cell interiors,
         and optional solution path highlighting.
         """
-        if self.config.width > 429:
-            raise Exception("Error: maximum width to be visualised is"
-                            "429 cells")
-        elif self.config.height > 429:
-            raise Exception("Error: maximum height to be visualised is"
-                            "429 cells")
-
         path_positions = {(cell.x, cell.y) for cell in self.path[0]}
         step = self.cell_length - self.stroke_length
 
